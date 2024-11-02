@@ -7,9 +7,6 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-image: url('https://raw.githubusercontent.com/Reso1992/DmoDiscordBot/main/IMG_9239.gif'); /* Set the image as background */
-            background-size: cover; /* Ensure the background image covers the entire body */
-            background-position: center; /* Center the background image */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -17,14 +14,29 @@
             min-height: 100vh;
             margin: 0;
             color: #fff;
+            overflow: hidden; /* Verhindert Scrollen */
+        }
+        video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1; /* Video hinter dem Inhalt */
+            transform: translate(-50%, -50%);
+            object-fit: cover; /* Video an den Hintergrund anpassen */
         }
         .calculator {
-            background-color: rgba(0, 0, 0, 0.7); /* Make it semi-transparent to show the background image */
+            background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
             width: 90%;
             max-width: 400px;
+            position: relative;
+            z-index: 1; /* Inhalt über dem Video */
         }
         img {
             display: block;
@@ -53,142 +65,273 @@
             padding: 10px;
             border: 1px solid #888;
             border-radius: 5px;
-            background-color: #444;
-            color: #fff;
+            background-color: #333;
+            transition: box-shadow 0.3s;
+        }
+        input.selected {
+            box-shadow: 0 0 20px #0ff; /* Neon-Effekt für das ausgewählte Eingabefeld */
+        }
+        /* Schriftfarben für die Eingabefelder */
+        #purchase-price-t, #selling-price-t {
+            color: #8B4513; /* Neon Braun für T */
+        }
+        #purchase-price-m, #selling-price-m {
+            color: #008000; /* Neon Grün für M */
+        }
+        #purchase-price-b, #selling-price-b {
+            color: #ffffff; /* Weiß für B */
+        }
+        #quantity {
+            color: #ffffff; /* Weiß für die Menge */
         }
         button {
             width: 100%;
             padding: 10px;
-            background-color: #f7d731;
-            color: black;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, color 0.3s;
+            box-shadow: 0 0 20px #0ff; /* Dauerhafter Neon-Effekt */
         }
-        button:hover {
-            background-color: #ffc107;
+        button.selected {
+            background-color: #f7d731; /* Neonfarbe für dunkles Design */
+            color: black;
+        }
+        button.dark:hover,
+        button.dark:active {
+            color: #0ff; /* Neonfarbe bei Hover */
+            background-color: #f39c12; /* Ein wenig dunkler bei Hover für dunkles Design */
         }
         .result-table {
             margin-top: 20px;
             width: 100%;
             text-align: center;
-            color: #ffffff;
+            display: none;
         }
         .result-table th, .result-table td {
             padding: 10px;
             border: 1px solid #888;
         }
         .result-table th {
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black for the header */
+            background-color: rgba(0, 0, 0, 0.5);
         }
         footer {
             margin-top: 20px;
             text-align: center;
             color: #f7d731;
             font-size: 0.9em;
-            width: 100%;
+            text-shadow: 0 0 20px #0ff; /* Neon-Effekt für den Footer */
+        }
+        /* Slide Button Styles */
+        .language-switch {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px; /* Kleinere Breite für den Schiebeschalter */
+            height: 24px; /* Kleinere Höhe für den Schiebeschalter */
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; /* Kleinere Höhe für den Schiebeschalter */
+            width: 18px; /* Kleinere Breite für den Schiebeschalter */
+            left: 3px; /* Verschiebung anpassen */
+            bottom: 3px; /* Verschiebung anpassen */
+            background-color: white;
+            border-radius: 50%;
+            transition: .4s;
+        }
+        input:checked + .slider {
+            background-color: #f7d731;
+        }
+        input:checked + .slider:before {
+            transform: translateX(16px); /* Anpassung der Position des Kreises */
+        }
+        .lang-text {
+            margin-left: 5px; /* Kleinere Lücke zwischen Schalter und Text */
+            color: #ffffff;
+        }
+        /* Neon-Effekt für die Ergebnisse */
+        #tera-result {
+            color: #8B4513; /* Neon Braun für Tera */
+            text-shadow: 0 0 20px #8B4513; /* Neon-Effekt */
+        }
+        #mega-result {
+            color: #008000; /* Neon Grün für Mega */
+            text-shadow: 0 0 20px #008000; /* Neon-Effekt */
+        }
+        #byte-result {
+            color: #ffffff; /* Weiß für Byte */
+            text-shadow: 0 0 20px #ffffff; /* Neon-Effekt */
         }
     </style>
 </head>
 <body>
 
-<div class="calculator">
+<video autoplay muted loop>
+    <source src="https://github.com/Reso1992/DmoDiscordBot/raw/main/livewallpaper_small.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+</video>
+
+<div class="calculator" id="calculator">
     <img src="https://raw.githubusercontent.com/Reso1992/DmoDiscordBot/main/dmo%20master%20online%20logo.png" alt="Dmo Calc Logo">
 
+    <div class="language-switch">
+        <label class="switch">
+            <input type="checkbox" id="lang-toggle" onclick="toggleLanguage()">
+            <span class="slider"></span>
+        </label>
+        <span class="lang-text" id="language-label">Deutsch</span> <!-- Nur die Sprache ohne Präfix -->
+    </div>
+
     <div class="input-group">
-        <label>Einkaufspreis:</label>
+        <label id="purchase-price-label">Einkaufspreis:</label>
         <div class="currency-group">
-            <input type="number" id="purchase-price-t" placeholder="T">
-            <input type="number" id="purchase-price-m" placeholder="M">
-            <input type="number" id="purchase-price-b" placeholder="B">
+            <input type="number" id="purchase-price-t" placeholder="T" onclick="selectInput(this)">
+            <input type="number" id="purchase-price-m" placeholder="M" onclick="selectInput(this)">
+            <input type="number" id="purchase-price-b" placeholder="B" onclick="selectInput(this)">
         </div>
     </div>
 
     <div class="input-group">
-        <label>Menge:</label>
-        <input type="number" id="quantity" placeholder="Menge eingeben">
+        <label id="quantity-label">Menge:</label>
+        <input type="number" id="quantity" placeholder="Menge eingeben" onclick="selectInput(this)">
     </div>
 
     <div class="input-group">
-        <label>Verkaufspreis:</label>
+        <label id="selling-price-label">Verkaufspreis:</label>
         <div class="currency-group">
-            <input type="number" id="selling-price-t" placeholder="T">
-            <input type="number" id="selling-price-m" placeholder="M">
-            <input type="number" id="selling-price-b" placeholder="B">
+            <input type="number" id="selling-price-t" placeholder="T" onclick="selectInput(this)">
+            <input type="number" id="selling-price-m" placeholder="M" onclick="selectInput(this)">
+            <input type="number" id="selling-price-b" placeholder="B" onclick="selectInput(this)">
         </div>
     </div>
 
     <div class="input-group">
-        <label>Gebühr in %:</label>
-        <input type="number" id="fee" value="1">
+        <label id="fee-label">Gebühr in %:</label>
+        <input type="number" id="fee" value="1" onclick="selectInput(this)">
     </div>
 
-    <button onclick="calculateProfit()">Gewinn berechnen</button>
+    <button id="calculate-button" class="dark" onclick="calculateProfit(); selectButton(this)">Gewinn berechnen</button>
 
     <div class="result">
         <table class="result-table" id="result-table">
-            <thead>
-                <tr>
-                    <th>Tera (T)</th>
-                    <th>Mega (M)</th>
-                    <th>Byte (B)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td id="tera-result">-</td>
-                    <td id="mega-result">-</td>
-                    <td id="byte-result">-</td>
-                </tr>
-            </tbody>
+            <tr>
+                <th>Tera</th>
+                <th>Mega</th>
+                <th>Byte</th>
+            </tr>
+            <tr>
+                <td id="tera-result">0.00</td>
+                <td id="mega-result">0.00</td>
+                <td id="byte-result">0.00</td>
+            </tr>
         </table>
     </div>
+
+    <footer>
+        <span id="footer-text">Made by Reso</span>
+    </footer>
+
+    <script>
+        let language = 'de'; // Standardmäßig auf Deutsch
+
+        function toggleLanguage() {
+            language = language === 'de' ? 'en' : 'de'; // Sprache umschalten
+            if (language === 'en') {
+                changeLabelsToEnglish();
+                document.getElementById('language-label').innerText = 'English'; // Aktuelle Sprache anzeigen
+                document.getElementById('quantity').placeholder = 'Enter Quantity'; // Platzhalter ändern
+            } else {
+                changeLabelsToGerman();
+                document.getElementById('language-label').innerText = 'Deutsch'; // Aktuelle Sprache anzeigen
+                document.getElementById('quantity').placeholder = 'Menge eingeben'; // Platzhalter ändern
+            }
+        }
+
+        function changeLabelsToEnglish() {
+            document.getElementById('purchase-price-label').innerText = 'Purchase Price:';
+            document.getElementById('quantity-label').innerText = 'Quantity:';
+            document.getElementById('selling-price-label').innerText = 'Selling Price:';
+            document.getElementById('fee-label').innerText = 'Fee in %:';
+            document.getElementById('calculate-button').innerText = 'Calculate Profit';
+            document.getElementById('footer-text').innerText = 'Made by Reso';
+        }
+
+        function changeLabelsToGerman() {
+            document.getElementById('purchase-price-label').innerText = 'Einkaufspreis:';
+            document.getElementById('quantity-label').innerText = 'Menge:';
+            document.getElementById('selling-price-label').innerText = 'Verkaufspreis:';
+            document.getElementById('fee-label').innerText = 'Gebühr in %:';
+            document.getElementById('calculate-button').innerText = 'Gewinn berechnen';
+            document.getElementById('footer-text').innerText = 'Made by Reso';
+        }
+
+        function calculateProfit() {
+            const purchasePriceT = parseFloat(document.getElementById('purchase-price-t').value) || 0;
+            const purchasePriceM = parseFloat(document.getElementById('purchase-price-m').value) || 0;
+            const purchasePriceB = parseFloat(document.getElementById('purchase-price-b').value) || 0;
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const sellingPriceT = parseFloat(document.getElementById('selling-price-t').value) || 0;
+            const sellingPriceM = parseFloat(document.getElementById('selling-price-m').value) || 0;
+            const sellingPriceB = parseFloat(document.getElementById('selling-price-b').value) || 0;
+            const fee = parseFloat(document.getElementById('fee').value) || 1;
+
+            const totalPurchasePrice = (purchasePriceT + purchasePriceM + purchasePriceB) * quantity;
+            const totalSellingPrice = (sellingPriceT + sellingPriceM + sellingPriceB) * quantity;
+            const profit = totalSellingPrice - totalPurchasePrice;
+            const feeAmount = (profit * fee) / 100;
+            const netProfit = profit - feeAmount;
+
+            const tera = netProfit / 1000;
+            const mega = netProfit / 1000000;
+            const byte = netProfit / 1000000000;
+
+            document.getElementById('tera-result').innerText = tera.toFixed(2);
+            document.getElementById('mega-result').innerText = mega.toFixed(2);
+            document.getElementById('byte-result').innerText = byte.toFixed(2);
+
+            document.getElementById('result-table').style.display = 'table'; // Tabelle anzeigen
+        }
+
+        function selectButton(button) {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.classList.remove('selected'); // Entferne den Neon-Effekt von allen Buttons
+            });
+            button.classList.add('selected'); // Füge den Neon-Effekt zum geklickten Button hinzu
+        }
+
+        function selectInput(input) {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(inp => {
+                inp.classList.remove('selected'); // Entferne den Neon-Effekt von allen Eingabefeldern
+            });
+            input.classList.add('selected'); // Füge den Neon-Effekt zum ausgewählten Eingabefeld hinzu
+        }
+    </script>
 </div>
-
-<footer>Made by Reso</footer>
-
-<script>
-    function toBytes(t, m, b) {
-        return (t * 1_000_000_000) + (m * 1_000_000) + (b * 1_000);
-    }
-
-    function formatCurrency(value) {
-        const tera = Math.floor(value / 1_000_000_000);
-        value %= 1_000_000_000;
-        const mega = Math.floor(value / 1_000_000);
-        value %= 1_000_000;
-        const byte = Math.floor(value / 1_000);
-        return { tera, mega, byte };
-    }
-
-    function calculateProfit() {
-        const purchaseT = Number(document.getElementById('purchase-price-t').value) || 0;
-        const purchaseM = Number(document.getElementById('purchase-price-m').value) || 0;
-        const purchaseB = Number(document.getElementById('purchase-price-b').value) || 0;
-        const sellingT = Number(document.getElementById('selling-price-t').value) || 0;
-        const sellingM = Number(document.getElementById('selling-price-m').value) || 0;
-        const sellingB = Number(document.getElementById('selling-price-b').value) || 0;
-        const quantity = Number(document.getElementById('quantity').value) || 1;
-        const feePercent = Number(document.getElementById('fee').value) / 100;
-
-        const purchasePrice = toBytes(purchaseT, purchaseM, purchaseB);
-        const sellingPrice = toBytes(sellingT, sellingM, sellingB);
-
-        const totalPurchaseCost = purchasePrice * quantity;
-        const totalSellingIncome = quantity * sellingPrice * (1 - feePercent);
-        const profit = totalSellingIncome - totalPurchaseCost;
-
-        const { tera, mega, byte } = formatCurrency(profit);
-
-        document.getElementById('tera-result').innerText = tera;
-        document.getElementById('mega-result').innerText = mega;
-        document.getElementById('byte-result').innerText = byte;
-
-        document.getElementById('result-table').style.display = 'table';
-    }
-</script>
 
 </body>
 </html>
