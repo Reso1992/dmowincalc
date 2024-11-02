@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dmo Calc - Digimon Masters Online</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://raw.githubusercontent.com/Reso1992/DmoDiscordBot/main/IMG_9239.gif'); /* Set the image as background */
+            background-size: cover; /* Ensure the background image covers the entire body */
+            background-position: center; /* Center the background image */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #fff;
+        }
+        .calculator {
+            background-color: rgba(0, 0, 0, 0.7); /* Make it semi-transparent to show the background image */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+        h2 {
+            color: #f7d731;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        .currency-group {
+            display: flex;
+            gap: 10px;
+        }
+        .currency-group input {
+            flex: 1;
+            min-width: 0;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #888;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #f7d731;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ffc107;
+        }
+        .result-table {
+            margin-top: 20px;
+            width: 100%;
+            text-align: center;
+            color: #ffffff;
+        }
+        .result-table th, .result-table td {
+            padding: 10px;
+            border: 1px solid #888;
+        }
+        .result-table th {
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black for the header */
+        }
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #f7d731;
+            font-size: 0.9em;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <h2>Dmo Calc</h2>
+
+    <div class="input-group">
+        <label>Einkaufspreis:</label>
+        <div class="currency-group">
+            <input type="number" id="purchase-price-t" placeholder="T">
+            <input type="number" id="purchase-price-m" placeholder="M">
+            <input type="number" id="purchase-price-b" placeholder="B">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Menge:</label>
+        <input type="number" id="quantity" placeholder="Menge eingeben">
+    </div>
+
+    <div class="input-group">
+        <label>Verkaufspreis:</label>
+        <div class="currency-group">
+            <input type="number" id="selling-price-t" placeholder="T">
+            <input type="number" id="selling-price-m" placeholder="M">
+            <input type="number" id="selling-price-b" placeholder="B">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Gebühr in %:</label>
+        <input type="number" id="fee" value="1">
+    </div>
+
+    <button onclick="calculateProfit()">Gewinn berechnen</button>
+
+    <div class="result">
+        <table class="result-table" id="result-table">
+            <thead>
+                <tr>
+                    <th>Tera (T)</th>
+                    <th>Mega (M)</th>
+                    <th>Byte (B)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="tera-result">-</td>
+                    <td id="mega-result">-</td>
+                    <td id="byte-result">-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>Made by Reso</footer>
+
+<script>
+    function toBytes(t, m, b) {
+        return (t * 1_000_000_000) + (m * 1_000_000) + (b * 1_000);
+    }
+
+    function formatCurrency(value) {
+        const tera = Math.floor(value / 1_000_000_000);
+        value %= 1_000_000_000;
+        const mega = Math.floor(value / 1_000_000);
+        value %= 1_000_000;
+        const byte = Math.floor(value / 1_000);
+        return { tera, mega, byte };
+    }
+
+    function calculateProfit() {
+        const purchaseT = Number(document.getElementById('purchase-price-t').value) || 0;
+        const purchaseM = Number(document.getElementById('purchase-price-m').value) || 0;
+        const purchaseB = Number(document.getElementById('purchase-price-b').value) || 0;
+        const sellingT = Number(document.getElementById('selling-price-t').value) || 0;
+        const sellingM = Number(document.getElementById('selling-price-m').value) || 0;
+        const sellingB = Number(document.getElementById('selling-price-b').value) || 0;
+        const quantity = Number(document.getElementById('quantity').value) || 1;
+        const feePercent = Number(document.getElementById('fee').value) / 100;
+
+        const purchasePrice = toBytes(purchaseT, purchaseM, purchaseB);
+        const sellingPrice = toBytes(sellingT, sellingM, sellingB);
+
+        const totalPurchaseCost = purchasePrice * quantity;
+        const totalSellingIncome = quantity * sellingPrice * (1 - feePercent);
+        const profit = totalSellingIncome - totalPurchaseCost;
+
+        const { tera, mega, byte } = formatCurrency(profit);
+
+        document.getElementById('tera-result').innerText = tera;
+        document.getElementById('mega-result').innerText = mega;
+        document.getElementById('byte-result').innerText = byte;
+
+        document.getElementById('result-table').style.display = 'table';
+    }
+</script>
+
+</body>
+</html>
