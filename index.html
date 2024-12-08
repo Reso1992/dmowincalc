@@ -289,31 +289,46 @@
         }
 
         function calculateProfit() {
-            const purchasePriceT = parseFloat(document.getElementById('purchase-price-t').value) || 0;
-            const purchasePriceM = parseFloat(document.getElementById('purchase-price-m').value) || 0;
-            const purchasePriceB = parseFloat(document.getElementById('purchase-price-b').value) || 0;
-            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
-            const sellingPriceT = parseFloat(document.getElementById('selling-price-t').value) || 0;
-            const sellingPriceM = parseFloat(document.getElementById('selling-price-m').value) || 0;
-            const sellingPriceB = parseFloat(document.getElementById('selling-price-b').value) || 0;
-            const fee = parseFloat(document.getElementById('fee').value) || 1;
+    const purchasePriceT = parseFloat(document.getElementById('purchase-price-t').value) || 0;
+    const purchasePriceM = parseFloat(document.getElementById('purchase-price-m').value) || 0;
+    const purchasePriceB = parseFloat(document.getElementById('purchase-price-b').value) || 0;
+    const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+    const sellingPriceT = parseFloat(document.getElementById('selling-price-t').value) || 0;
+    const sellingPriceM = parseFloat(document.getElementById('selling-price-m').value) || 0;
+    const sellingPriceB = parseFloat(document.getElementById('selling-price-b').value) || 0;
+    const fee = parseFloat(document.getElementById('fee').value) || 1;
 
-            const totalPurchasePrice = (purchasePriceT + purchasePriceM + purchasePriceB) * quantity;
-            const totalSellingPrice = (sellingPriceT + sellingPriceM + sellingPriceB) * quantity;
-            const profit = totalSellingPrice - totalPurchasePrice;
-            const feeAmount = (profit * fee) / 100;
-            const netProfit = profit - feeAmount;
+    // Einkaufspreis und Verkaufspreis in Bytes umrechnen
+    const purchasePriceBytes = (purchasePriceT * 1000000000) + (purchasePriceM * 1000000) + (purchasePriceB * 1000);
+    const sellingPriceBytes = (sellingPriceT * 1000000000) + (sellingPriceM * 1000000) + (sellingPriceB * 1000);
 
-            const tera = netProfit / 1000;
-            const mega = netProfit / 1000000;
-            const byte = netProfit / 1000000000;
+    // Gesamtpreise berechnen
+    const totalPurchasePrice = purchasePriceBytes * quantity;
+    const totalSellingPrice = sellingPriceBytes * quantity;
 
-            document.getElementById('tera-result').innerText = tera.toFixed(2);
-            document.getElementById('mega-result').innerText = mega.toFixed(2);
-            document.getElementById('byte-result').innerText = byte.toFixed(2);
+    // Gewinn berechnen
+    const profit = totalSellingPrice - totalPurchasePrice;
 
-            document.getElementById('result-table').style.display = 'table'; // Tabelle anzeigen
-        }
+    // Gebühr berechnen
+    const feeAmount = (profit * fee) / 100;
+
+    // Nettogewinn
+    const netProfit = profit - feeAmount;
+
+    // Nettogewinn in Tera, Mega und Byte aufteilen
+    const tera = Math.floor(netProfit / 1000000000);
+    const remainingAfterTera = netProfit % 1000000000;
+    const mega = Math.floor(remainingAfterTera / 1000000);
+    const remainingAfterMega = remainingAfterTera % 1000000;
+    const byte = Math.floor(remainingAfterMega / 1000);
+
+    // Ergebnisse anzeigen
+    document.getElementById('tera-result').innerText = tera.toFixed(2);
+    document.getElementById('mega-result').innerText = mega.toFixed(2);
+    document.getElementById('byte-result').innerText = byte.toFixed(2);
+
+    document.getElementById('result-table').style.display = 'table'; // Tabelle anzeigen
+}
 
         function selectButton(button) {
             const buttons = document.querySelectorAll('button');
